@@ -1,0 +1,14 @@
+{
+    "devManageService" : "devmanage_0", 
+    "devInterface" : "eno1", 
+
+    "qosService" : "", 
+    "qosDirPath" : "launch/qos", 
+
+    "safetyService" : "", 
+
+    "timesyncService" : "", 
+    "timesyncPeriod_ms" : 120000.0, 
+    "timesyncAccuracy_ms" : 2.0, 
+    "timesyncWaitService" : false
+}

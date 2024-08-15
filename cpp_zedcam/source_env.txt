@@ -1,0 +1,12 @@
+if sudo systemctl list-dependencies | grep zed_x_daemon.service &> /dev/null
+then
+    sudo systemctl restart zed_x_daemon.service
+    printf "%s\n" "ZED X driver loading..."
+    while ! sudo systemctl status zed_x_daemon.service --no-pager | grep -Po "ZED-X Driver loaded" &> /dev/null
+    do
+        printf "%c" "."
+    done
+    printf "\t%s\n" "ZED X driver loaded."
+else
+    echo "Ignore ZED X driver."
+fi
