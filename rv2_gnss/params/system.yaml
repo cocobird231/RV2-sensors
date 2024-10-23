@@ -1,0 +1,20 @@
+launch:
+    params: "params.yaml"
+    launch: "launch.py"
+    use_root: false
+
+network:
+    interface: "eno1"
+    internet_required: false
+
+custom:
+    gpsDeviceName: "ttyUSB0"
+    gpsDevicePath: "/dev/ttyUSB0"
+    gpsBaudRate: 115200
+
+    useNtrip: false
+    ntripServer: ""
+    ntripPort: 2101
+    ntripMountPoint: ""
+    ntripUser: ""
+    ntripPassword: ""

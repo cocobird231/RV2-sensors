@@ -1,0 +1,37 @@
+/**:
+    ros__parameters:
+        # Generic parameters
+        namespace: ""
+        nodeName: "rv2_camera"
+        id: "0"
+        use_sim_time: false
+        devManageService: ""
+        devInterface: "eno1"
+        qosService: ""
+        qosDirPath: ""
+        safetyService: ""
+        timesyncService: ""
+        timesyncPeriod_ms: 10000.0
+        timesyncAccuracy_ms: 2.0
+        timesyncWaitService: false
+
+        # Package parameters
+
+        ## Topic publisher parameters
+        topicName: "camera_0"
+        publishWidth: 1920
+        publishHeight: 1080
+        useCompression: true
+        compressionQuality: 80
+
+        ## Camera parameters
+        cameraCapID: 0
+        cameraAutoSetting: true
+        cameraFPS: 30.0 # Camera frame rate (cameraAutoFrameSetting: false)
+        cameraWidth: 640 # Input resolution (cameraAutoFrameSize: false)
+        cameraHeight: 480
+        cameraUseColor: true
+
+        ## Procedure timeout parameters
+        imagePublishProcTimeout_ms: 100.0 # 10fps
+        caminfoPublishProcTimeout_ms: 2000.0 # 0.5fps

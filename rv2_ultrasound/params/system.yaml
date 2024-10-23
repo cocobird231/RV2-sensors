@@ -1,0 +1,8 @@
+launch:
+    params: "params.yaml"
+    launch: "launch.py"
+    use_root: true
+
+network:
+    interface: "eno1"
+    internet_required: false

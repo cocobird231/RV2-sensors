@@ -1,0 +1,34 @@
+/**:
+    ros__parameters:
+        # Generic parameters
+        namespace: ""
+        nodeName: "rv2_ultrasound"
+        id: "0"
+        use_sim_time: false
+        devManageService: ""
+        devInterface: "eno1"
+        qosService: ""
+        qosDirPath: ""
+        safetyService: ""
+        timesyncService: ""
+        timesyncPeriod_ms: 10000.0
+        timesyncAccuracy_ms: 2.0
+        timesyncWaitService: false
+
+        # Package parameters
+
+        ## Topic publisher parameters
+        topicName: "ultrasound"
+        topicIds: [0.0, 1.0, 2.0, 3.0]
+        publishPeriod_ms: 100.0
+
+        ## Device parameters
+        devicePath : "/dev/ttyACM0"
+        deviceBaud : 9600
+        minRange : 0.2 # m
+        maxRange : 8.0 # m
+        fov : 15.0 # degree
+
+        ## Procedure timeout parameters
+        serialModuleProcTimeout_ms: 100.0
+        msgPublishProcTimeout_ms: 200.0

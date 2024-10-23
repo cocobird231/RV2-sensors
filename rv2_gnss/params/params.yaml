@@ -1,0 +1,27 @@
+/**:
+    ros__parameters:
+        # Generic parameters
+        namespace: ""
+        nodeName: "rv2_gnss"
+        id: "0"
+        use_sim_time: false
+        devManageService: ""
+        devInterface: "eno1"
+        qosService: ""
+        qosDirPath: ""
+        safetyService: ""
+        timesyncService: ""
+        timesyncPeriod_ms: 10000.0
+        timesyncAccuracy_ms: 2.0
+        timesyncWaitService: false
+
+        # Package parameters
+
+        ## Topic publisher parameters
+        topicName: "gnss_0"
+        publishPeriod_ms: 500.0
+
+        ## Procedure timeout parameters
+        gpsModuleProcTimeout_ms: 6000.0
+        msgPublishProcTimeout_ms: 1000.0
+        msgUpdateProcTimeout_ms: 6000.0
