@@ -17,6 +17,7 @@ from launch.actions import OpaqueFunction
 
 pkgName = 'rv2_gnss'
 pkgPath = get_package_share_directory(pkgName)
+pkgExec = 'gnss_node'
 
 
 def launch_setup(context, *args, **kwargs):
@@ -39,7 +40,8 @@ def launch_setup(context, *args, **kwargs):
 
         Node(
             package=pkgName,
-            executable='main',
+            name=yaml_dict['nodeName'] + '_' + yaml_dict['id'] + '_node',
+            executable=pkgExec,
             output='screen',
             parameters=[yaml_dict]
         )

@@ -6,11 +6,15 @@
 #include <unistd.h>
 
 #include <rv2_interfaces/utils.h>
-#include <rv2_ultrasound/config.h>
+// #include <rv2_ultrasound/config.h>
+#include "config.h"// TEST
 
 #define FIRST_DATA_POS 4
 #define DATA_SIZE 2
 #define BUF_SIZE 16
+
+namespace rv2_sensors
+{
 
 int set_interface_attribs(int fd, int speed, int parity);
 void set_blocking(int fd, int should_block);
@@ -32,16 +36,18 @@ private:
 
     std::atomic<bool> mExitF_;
 
-private:
-    void _th();
-
 public:
     SerialModule(std::string devicePath, int baud);
 
     ~SerialModule();
 
+private:
+    void _th();
+
+public:
     bool getMsg(std::array<float, ULTRASOUND_MODULE_SIZE>& outMsg, std::chrono::time_point<std::chrono::system_clock>& outTs);
 
     bool isExit() const;
 };
 
+}// namespace rv2_sensors

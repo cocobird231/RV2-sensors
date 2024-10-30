@@ -15,24 +15,21 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-if($ENV{ROS_DISTRO} STREQUAL "foxy")
-  add_compile_options(-DROS_DISTRO=1)
-elseif($ENV{ROS_DISTRO} STREQUAL "humble")
-  add_compile_options(-DROS_DISTRO=2)
-else()# eloquent
-  add_compile_options(-DROS_DISTRO=0)
-endif()
-
-# find dependencies
-SET(ENABLE_VS_NODE False CACHE BOOL "Some user-specified option")
-if( ENABLE_VS_NODE ) 
-  add_compile_options(-DVS_NODE)
+# Check ROS_DISTRO
+set(MY_ROS2_DISTRO $ENV{ROS_DISTRO})
+if(${MY_ROS2_DISTRO} STREQUAL "foxy")
+  add_definitions(-DFOUND_FOXY)
+elseif(${MY_ROS2_DISTRO} STREQUAL "humble")
+  add_definitions(-DFOUND_HUMBLE)
+else()
+  message(FATAL_ERROR "ROS_DISTRO is not found or not supported.")
 endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rv2_interfaces REQUIRED)
 
@@ -40,9 +37,12 @@ find_package(rv2_interfaces REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GPS REQUIRED libgps)
 
-set (SRC_FILES
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/gnss_node.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+set(DEPENDENCIES
+    rcl
+    rclcpp
+    rclcpp_components
+    sensor_msgs
+    rv2_interfaces
 )
 
 # Include directories
@@ -54,17 +54,65 @@ include_directories(${GPS_INCLUDE_DIRS})
 
 link_directories(${GPS_LIBRARY_DIRS})
 
-## Build
-add_executable(main ${SRC_FILES})
-ament_target_dependencies(main rcl rclcpp rv2_interfaces sensor_msgs)
-target_link_libraries(main
+
+
+# Build
+
+## Component
+
+# create ament index resource which references the libraries in the binary dir
+set(node_plugins "")
+
+# rv2_camera Component
+add_library(rv2_gnss_component
+  SHARED src/gnss_component.cpp
+)
+target_compile_definitions(rv2_gnss_component
+  PRIVATE "COMPOSITION_BUILDING_DLL"
+)
+target_link_libraries(rv2_gnss_component
   ${GPS_LIBRARIES}
 )
+ament_target_dependencies(rv2_gnss_component ${DEPENDENCIES})
+rclcpp_components_register_nodes(rv2_gnss_component "rv2_sensors::GNSSComponent")
+set(node_plugins "${node_plugins}rv2_sensors::GNSSComponent;$<TARGET_FILE:rv2_gnss_component>\n")
 
-## Install
+if(NOT WIN32)
+  ament_environment_hooks(
+    "${ament_cmake_package_templates_ENVIRONMENT_HOOK_LIBRARY_PATH}"
+  )
+endif()
+
+## Executable
+
+add_executable(gnss_node src/gnss_node.cpp)
+target_link_libraries(gnss_node
+  rv2_gnss_component
+  ${GPS_LIBRARIES}
+)
+ament_target_dependencies(gnss_node ${DEPENDENCIES})
+
+# Install
+
+## Component
 install(TARGETS
-  main
+  rv2_gnss_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  # RUNTIME DESTINATION bin
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+## Executable
+install(TARGETS
+  gnss_node
   DESTINATION lib/${PROJECT_NAME}
+)
+
+## Include
+install(DIRECTORY
+  include/
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(
@@ -72,4 +120,7 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+ament_export_include_directories(include)
+ament_export_libraries(rv2_gnss_component)
+ament_export_dependencies(${DEPENDENCIES})
 ament_package()

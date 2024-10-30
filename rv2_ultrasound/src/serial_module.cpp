@@ -1,4 +1,28 @@
-#include <rv2_ultrasound/serial_module.h>
+// #include <rv2_ultrasound/serial_module.h>
+#include "../include/rv2_ultrasound/serial_module.h"// TEST
+
+namespace rv2_sensors
+{
+
+SerialModule::SerialModule(std::string devicePath, int baud) : 
+    mDevicePath_(devicePath), 
+    mDeviceBaud_(baud), 
+    mExitF_(false)
+{
+    mMsg_ = { 0.0, 0.0, 0.0, 0.0 };
+    mMsgTs_ = std::chrono::system_clock::now();
+    mTh_ = rv2_interfaces::make_unique_thread(&SerialModule::_th, this);
+}
+
+
+
+SerialModule::~SerialModule()
+{
+    mExitF_ = true;
+    mTh_.reset();
+}
+
+
 
 void SerialModule::_th()
 {
@@ -59,21 +83,7 @@ void SerialModule::_th()
     mExitF_ = true;
 }
 
-SerialModule::SerialModule(std::string devicePath, int baud) : 
-    mDevicePath_(devicePath), 
-    mDeviceBaud_(baud), 
-    mExitF_(false)
-{
-    mMsg_ = { 0.0, 0.0, 0.0, 0.0 };
-    mMsgTs_ = std::chrono::system_clock::now();
-    mTh_ = rv2_interfaces::make_unique_thread(&SerialModule::_th, this);
-}
 
-SerialModule::~SerialModule()
-{
-    mExitF_ = true;
-    mTh_.reset();
-}
 
 bool SerialModule::getMsg(std::array<float, ULTRASOUND_MODULE_SIZE>& outMsg, std::chrono::time_point<std::chrono::system_clock>& outTs)
 {
@@ -85,11 +95,12 @@ bool SerialModule::getMsg(std::array<float, ULTRASOUND_MODULE_SIZE>& outMsg, std
     return true;
 }
 
+
+
 bool SerialModule::isExit() const
 {
     return mExitF_.load();
 }
-
 
 
 
@@ -182,3 +193,5 @@ std::vector<int> GetUltrasoundData(unsigned char *buffer)
     }
     return ret;
 }
+
+} // namespace rv2_sensors

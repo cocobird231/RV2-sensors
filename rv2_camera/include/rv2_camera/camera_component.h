@@ -13,23 +13,29 @@
 #include "sensor_msgs/msg/compressed_image.hpp"
 #include "sensor_msgs/msg/image.hpp"
 // CameraInfo
-#include <sensor_msgs/distortion_models.hpp>
+#include "sensor_msgs/distortion_models.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
 
 #include <opencv2/opencv.hpp>
 
-class CameraNode : public rv2_interfaces::VehicleServiceNode
+#define DEFAULT_CAMERA_NODENAME "rv2_camera_default_node"
+#define DEFAULT_CAMERA_TOPIC "camera_default"
+
+namespace rv2_sensors
+{
+
+class CameraComponent : public rv2_interfaces::VehicleServiceNode
 {
 private:
     // Publish parameters
-    std::string mTopicName_ = "camera_default";
+    std::string mTopicName_ = DEFAULT_CAMERA_TOPIC;
     int mPublishWidth_ = 1920;
     int mPublishHeight_ = 1080;
     bool mUseCompression_ = false;
     int mCompressionQuality_ = 80;
 
     // Camera parameters
-    int mcameraCapID_ = 0;
+    int mCameraCapID_ = 0;
     double mCameraFPS_ = 30.0;
     int mCameraWidth_ = 640;
     int mCameraHeight_ = 480;
@@ -49,6 +55,11 @@ private:
 
     std::atomic<bool> mExitF_;
 
+public:
+    CameraComponent(const rclcpp::NodeOptions & options);
+
+    ~CameraComponent();
+
 private:
     void _camInfoPubTmCb();
 
@@ -57,9 +68,7 @@ private:
     void _pubImg(const cv::Mat& img);
 
 public:
-    CameraNode(const std::shared_ptr<const rv2_interfaces::GenericParams>& params);
-
-    ~CameraNode();
-
     bool isExit() const;
 };
+
+}
