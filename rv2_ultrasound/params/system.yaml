@@ -1,7 +1,9 @@
 launch:
     params: "params.yaml"
     launch: "launch.py"
+    startup_location: "${HOME}" # Leave empty if not needed.
     use_root: true
+    gui_mode: false
 
 network:
     interface: "eno1"
