@@ -6,8 +6,8 @@
 #include <unistd.h>
 
 #include <rv2_interfaces/utils.h>
-// #include <rv2_ultrasound/config.h>
-#include "config.h"// TEST
+
+#include "config.h"
 
 #define FIRST_DATA_POS 4
 #define DATA_SIZE 2

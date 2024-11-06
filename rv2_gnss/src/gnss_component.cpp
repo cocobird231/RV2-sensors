@@ -1,8 +1,15 @@
-// #include <rv2_gnss/gnss_component.h>
-#include "../include/rv2_gnss/gnss_component.h"
+#include "rv2_gnss/gnss_component.h"
 
 namespace rv2_sensors
 {
+
+/**
+ * ================================================================
+ * GNSSComponent Constructor and Destructor
+ * ================================================================
+ */
+
+
 
 GNSSComponent::GNSSComponent(const rclcpp::NodeOptions & options) : 
     rv2_interfaces::VehicleServiceNode(DEFAULT_GNSS_NODENAME, options), 
@@ -27,42 +34,8 @@ GNSSComponent::GNSSComponent(const rclcpp::NodeOptions & options) :
     this->addProcedureMonitor("gpsModule", std::chrono::nanoseconds((int64_t)(gpsModuleProcTimeout_ms * 1e6)));
     this->addProcedureMonitor("_publishMsg", std::chrono::nanoseconds((int64_t)(msgPublishProcTimeout_ms * 1e6)));
 
-    // Initialize rcl content
-    rcl_ret_t rc;
-    // static rcl_context_t context = rcl_get_zero_initialized_context();
-    // static rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-    // static rcl_allocator_t allocator = rcl_get_default_allocator();
-
-    // // Create init_options
-    // rc = rcl_init_options_init(&init_options, allocator);
-    // if (rc != RCL_RET_OK)
-    // {
-    //     RCLCPP_INFO(this->get_logger(), "rcl_init_options_init error: %d\n", (int)rc);
-    //     this->updateProcedureMonitor("_publishMsg", rv2_interfaces::ProcedureStatus::PROCEDURE_STATUS_ERROR, "Error rcl_init_options_init");
-    //     return;
-    // }
-
-    // // Create context
-    // rc = rcl_init(0, nullptr, &init_options, &context);
-    // if (rc != RCL_RET_OK)
-    // {
-    //     RCLCPP_INFO(this->get_logger(), "rcl_init error: %d\n", (int)rc);
-    //     this->updateProcedureMonitor("_publishMsg", rv2_interfaces::ProcedureStatus::PROCEDURE_STATUS_ERROR, "Error in rcl_init");
-    //     return;
-    // }
-
-    // // Initialize rcl node
-    // mPubNode_ = rcl_get_zero_initialized_node();
-    // static rcl_node_options_t node_ops = rcl_node_get_default_options();
-    // rc = rcl_node_init(&mPubNode_, (gParams->nodeName + "_pubnode").c_str(), this->get_namespace(), &context, &node_ops);
-    // if (rc != RCL_RET_OK)
-    // {
-    //     RCLCPP_INFO(this->get_logger(), "rcl_node_init init error: %d\n", (int)rc);
-    //     this->updateProcedureMonitor("_publishMsg", rv2_interfaces::ProcedureStatus::PROCEDURE_STATUS_ERROR, "Error in rcl_node_init");
-    //     return;
-    // }
-
     // Initialize rcl publisher
+    rcl_ret_t rc;
     const static rosidl_message_type_support_t *my_type_support = ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, NavSatFix);
     mPub_ = rcl_get_zero_initialized_publisher();
     static rcl_publisher_options_t pub_options = rcl_publisher_get_default_options();
@@ -92,6 +65,14 @@ GNSSComponent::~GNSSComponent()
     // rcl_node_fini(&mPubNode_);
     RCLCPP_INFO(this->get_logger(), "[GNSSComponent] Destructed.");
 }
+
+
+
+/**
+ * ================================================================
+ * GNSSComponent Private Methods
+ * ================================================================
+ */
 
 
 
@@ -209,6 +190,29 @@ void GNSSComponent::_grabGNSSData(std::string host, int port, double period_ms)
     gps_stream(&gps_data, WATCH_DISABLE, NULL);
     gps_close(&gps_data);
 }
+
+
+
+/**
+ * ================================================================
+ * GNSSComponent Public Methods
+ * ================================================================
+ */
+
+
+
+bool GNSSComponent::isExit() const
+{
+    return mExitF_.load();
+}
+
+
+
+/**
+ * ================================================================
+ * Functions
+ * ================================================================
+ */
 
 
 

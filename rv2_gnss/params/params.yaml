@@ -26,5 +26,6 @@
         gpsdPort: 2947
 
         ## Procedure timeout parameters
+        procStatusRegPeriod_ms: 500.0 # Procedure status registration period (required)
         gpsModuleProcTimeout_ms: 6000.0
         msgPublishProcTimeout_ms: 1000.0

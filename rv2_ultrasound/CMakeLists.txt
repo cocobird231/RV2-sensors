@@ -99,8 +99,16 @@ install(DIRECTORY
   DESTINATION include/${PROJECT_NAME}
 )
 
-install(
-  DIRECTORY launch params scripts
+## Files
+install(DIRECTORY
+  launch params scripts
+  DESTINATION share/${PROJECT_NAME}
+)
+
+## Requirements
+install(FILES
+  requirements_apt.txt
+  requirements_pip.txt
   DESTINATION share/${PROJECT_NAME}
 )
 

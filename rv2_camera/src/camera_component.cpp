@@ -1,8 +1,15 @@
-// #include <rv2_camera/camera_component.h>
-#include "../include/rv2_camera/camera_component.h"// TEST
+#include "rv2_camera/camera_component.h"
 
 namespace rv2_sensors
 {
+
+/**
+ * ================================================================
+ * CameraComponent Constructor and Destructor
+ * ================================================================
+ */
+
+
 
 CameraComponent::CameraComponent(const rclcpp::NodeOptions & options) : 
     rv2_interfaces::VehicleServiceNode(DEFAULT_CAMERA_NODENAME, options), 
@@ -85,6 +92,14 @@ CameraComponent::~CameraComponent()
     mCap_.release();
     RCLCPP_INFO(this->get_logger(), "[CameraComponent] Destructed.");
 }
+
+
+
+/**
+ * ================================================================
+ * CameraComponent Private Methods
+ * ================================================================
+ */
 
 
 
@@ -197,6 +212,16 @@ void CameraComponent::_pubImg(const cv::Mat& img)
     }
     this->updateProcedureMonitor("_pubImg", rv2_interfaces::ProcedureStatus::PROCEDURE_STATUS_OK);
 }
+
+
+
+/**
+ * ================================================================
+ * CameraComponent Public Methods
+ * ================================================================
+ */
+
+
 
 bool CameraComponent::isExit() const
 {

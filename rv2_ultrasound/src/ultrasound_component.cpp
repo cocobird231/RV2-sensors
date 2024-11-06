@@ -1,8 +1,15 @@
-// #include <rv2_ultrasound/ultrasound_component.h>
-#include "../include/rv2_ultrasound/ultrasound_component.h"// TEST
+#include "rv2_ultrasound/ultrasound_component.h"
 
 namespace rv2_sensors
 {
+
+/**
+ * ================================================================
+ * UltrasoundComponent Constructor and Destructor
+ * ================================================================
+ */
+
+
 
 UltrasoundComponent::UltrasoundComponent(const rclcpp::NodeOptions & options) : 
     rv2_interfaces::VehicleServiceNode(DEFAULT_ULTRASOUND_NODENAME, options), 
@@ -78,6 +85,14 @@ UltrasoundComponent::~UltrasoundComponent()
 
 
 
+/**
+ * ================================================================
+ * UltrasoundComponent Private Methods
+ * ================================================================
+ */
+
+
+
 void UltrasoundComponent::_pubMsg(const std::array<float, ULTRASOUND_MODULE_SIZE>& range)
 {
     if (mExitF_.load())
@@ -139,6 +154,14 @@ void UltrasoundComponent::_grabSerial(double period_ms)
     }
     RCLCPP_INFO(this->get_logger(), "[UltrasoundComponent::_grabSerial] Exit grabbing serial data.");
 }
+
+
+
+/**
+ * ================================================================
+ * UltrasoundComponent Public Methods
+ * ================================================================
+ */
 
 
 

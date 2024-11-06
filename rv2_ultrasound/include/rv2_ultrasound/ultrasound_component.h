@@ -10,10 +10,9 @@
 #include <sensor_msgs/msg/range.hpp>
 
 #include <rv2_interfaces/rv2_interfaces.h>
-// #include <rv2_ultrasound/config.h>
-#include "config.h"// TEST
-// #include <rv2_ultrasound/serial_module.h>
-#include "serial_module.h"// TEST
+
+#include "config.h"
+#include "serial_module.h"
 
 #define DEFAULT_ULTRASOUND_NODENAME "rv2_ultrasound_default_node"
 #define DEFAULT_ULTRASOUND_TOPIC "ultrasound_default"
@@ -46,6 +45,7 @@ private:
 
     void _grabSerial(double period_ms);
 
+public:
     bool isExit() const;
 };
 

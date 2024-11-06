@@ -100,6 +100,8 @@ private:
 
     void _grabGNSSData(std::string host, int port, double period_ms);
 
+public:
+    bool isExit() const;
 };
 
 SimpleGnssStatus CvtGpsDataToSimpleGnssStatus(gps_data_t* gpsData);

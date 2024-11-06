@@ -1,5 +1,4 @@
-// #include <rv2_ultrasound/serial_module.h>
-#include "../include/rv2_ultrasound/serial_module.h"// TEST
+#include "rv2_ultrasound/serial_module.h"
 
 namespace rv2_sensors
 {

@@ -33,5 +33,6 @@
         cameraUseColor: true
 
         ## Procedure timeout parameters
+        procStatusRegPeriod_ms: 500.0 # Procedure status registration period (required)
         imagePublishProcTimeout_ms: 100.0 # 10fps
         caminfoPublishProcTimeout_ms: 2000.0 # 0.5fps
