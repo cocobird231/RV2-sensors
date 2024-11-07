@@ -5,11 +5,16 @@
         namespace: ""
         nodeName: "rv2_camera"          # rv2_sensors only
         id: "0"                         # rv2_sensors only
+
         devManageService: "devmanage_0" # Service name
         devInterface: "eno1"            # rv2_sensors only
+        procStatusRegPeriod_ms: 500.0   # Procedure status registration period
+
         qosService: "qos_0"             # Service name
         qosDirPath: "qos"               # rv2_sensors only
+
         safetyService: ""               # Service name
+
         timesyncService: ""             # Service name
         timesyncPeriod_ms: 0.0          # rv2_sensors only
         timesyncAccuracy_ms: 0.0        # rv2_sensors only
@@ -33,6 +38,5 @@
         cameraUseColor: true
 
         ## Procedure timeout parameters
-        procStatusRegPeriod_ms: 500.0 # Procedure status registration period (required)
         imagePublishProcTimeout_ms: 100.0 # 10fps
         caminfoPublishProcTimeout_ms: 2000.0 # 0.5fps
