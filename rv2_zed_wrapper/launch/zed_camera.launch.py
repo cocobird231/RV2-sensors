@@ -14,6 +14,7 @@
 
 import os
 import sys
+import yaml
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -23,6 +24,7 @@ from launch.actions import (
     DeclareLaunchArgument, 
     EmitEvent, 
     ExecuteProcess,
+    GroupAction,
     LogInfo, 
     OpaqueFunction, 
     RegisterEventHandler, 
@@ -43,6 +45,7 @@ from launch.substitutions import (
 )
 
 from launch_ros.actions import Node
+from launch_ros.actions import PushRosNamespace
 
 from launch.event_handlers import (
     OnExecutionComplete, 
@@ -53,6 +56,7 @@ from launch.event_handlers import (
 )
 
 from launch.events import Shutdown
+from launch.utilities import perform_substitutions
 
 pkgName = 'rv2_zed_wrapper'
 pkgExec = 'zed_wrapper'
@@ -104,9 +108,15 @@ def launch_setup(context, *args, **kwargs):
     camera_name = LaunchConfiguration('camera_name')
     camera_model = LaunchConfiguration('camera_model')
 
-    node_name = LaunchConfiguration('node_name')
+    # node_name = LaunchConfiguration('node_name')
 
     config_common_path = LaunchConfiguration('config_path')
+
+    # Params
+    params_file_path = perform_substitutions(context, [config_common_path])
+    yaml_dict = yaml.safe_load(open(params_file_path))
+    yaml_dict = yaml_dict[[k for k in yaml_dict.keys()][0]]['ros__parameters']
+
     config_ffmpeg = LaunchConfiguration('ffmpeg_config_path')
 
     serial_number = LaunchConfiguration('serial_number')
@@ -173,19 +183,6 @@ def launch_setup(context, *args, **kwargs):
             xacro_command.append(gnss_coords[2])
             xacro_command.append(' ')
 
-    # Robot State Publisher node
-    rsp_node = Node(
-        condition=IfCondition(publish_urdf),
-        package='robot_state_publisher',
-        # namespace=camera_name_val,
-        executable='robot_state_publisher',
-        name='zed_state_publisher',
-        output='screen',
-        parameters=[{
-            'robot_description': Command(xacro_command)
-        }]
-    )
-
     node_parameters = [
             # YAML files
             config_common_path,  # Common parameters
@@ -216,9 +213,9 @@ def launch_setup(context, *args, **kwargs):
     # ZED Wrapper node
     zed_wrapper_node = Node(
         package=pkgName,
-        # namespace=camera_name_val,
         executable=pkgExec,
-        name=node_name,
+        namespace=yaml_dict['namespace'],
+        name=yaml_dict['nodeName'] + '_' + yaml_dict['id'] + '_node',
         output='screen',
         #prefix=['valgrind'],
         #prefix=['xterm -e valgrind --tools=callgrind'],
@@ -227,9 +224,22 @@ def launch_setup(context, *args, **kwargs):
         parameters=node_parameters
     )
 
-    return [
-        rsp_node,
-        zed_wrapper_node,
+    cmd_group = GroupAction([
+        PushRosNamespace(
+            namespace=yaml_dict['namespace']
+        ), 
+
+        # Robot State Publisher node
+        Node(
+            condition=IfCondition(publish_urdf),
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            name=yaml_dict['nodeName'] + '_' + yaml_dict['id'] + '_state_publisher',
+            output='screen',
+            parameters=[{
+                'robot_description': Command(xacro_command)
+            }]
+        ), 
 
         # Exit event handler
         RegisterEventHandler(
@@ -251,110 +261,112 @@ def launch_setup(context, *args, **kwargs):
                         LocalSubstitution('event.reason')]
                 )]
             )
-        ),
-    ]
+        )
+    ])
+
+    return [zed_wrapper_node, cmd_group]
 
 
 def generate_launch_description():
-    return LaunchDescription(
-        [
-            SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
-            DeclareLaunchArgument(
-                'camera_name',
-                default_value=TextSubstitution(text='zed'),
-                description='The name of the camera. It can be different from the camera model and it will be used as node `namespace`.'),
-            DeclareLaunchArgument(
-                'camera_model',
-                description='[REQUIRED] The model of the camera. Using a wrong camera model can disable camera features.',
-                choices=['zed', 'zedm', 'zed2', 'zed2i', 'zedx', 'zedxm', 'virtual']),
-            DeclareLaunchArgument(
-                'node_name',
-                default_value='zed_node',
-                description='The name of the zed_wrapper node. All the topic will have the same prefix: `/<camera_name>/<node_name>/`'),
-            DeclareLaunchArgument(
-                'config_path',
-                default_value=TextSubstitution(text=default_config_common),
-                description='Path to the YAML configuration file for the camera.'),
-            DeclareLaunchArgument(
-                'ffmpeg_config_path',
-                default_value=TextSubstitution(text=default_config_ffmpeg),
-                description='Path to the YAML configuration file for the FFMPEG parameters when using FFMPEG image transport plugin.'),                
-            DeclareLaunchArgument(
-                'serial_number',
-                default_value='0',
-                description='The serial number of the camera to be opened. It is mandatory to use this parameter in multi-camera rigs to distinguish between different cameras.'),
-            DeclareLaunchArgument(
-                'publish_urdf',
-                default_value='true',
-                description='Enable URDF processing and starts Robot State Published to propagate static TF.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'publish_tf',
-                default_value='true',
-                description='Enable publication of the `odom -> camera_link` TF.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'publish_map_tf',
-                default_value='true',
-                description='Enable publication of the `map -> odom` TF. Note: Ignored if `publish_tf` is False.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'publish_imu_tf',
-                default_value='true',
-                description='Enable publication of the IMU TF. Note: Ignored if `publish_tf` is False.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'xacro_path',
-                default_value=TextSubstitution(text=default_xacro_path),
-                description='Path to the camera URDF file as a xacro file.'),
-            DeclareLaunchArgument(
-                'ros_params_override_path',
-                default_value='',
-                description='The path to an additional parameters file to override the defaults'),
-            DeclareLaunchArgument(
-                'svo_path',
-                default_value=TextSubstitution(text='live'),
-                description='Path to an input SVO file.'),
-            DeclareLaunchArgument(
-                'enable_gnss',
-                default_value='false',
-                description='Enable GNSS fusion to fix positional tracking pose with GNSS data from messages of type `sensor_msgs::msg::NavSatFix`. The fix topic can be customized in `common.yaml`.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'gnss_antenna_offset',
-                default_value='[]',
-                description='Position of the GNSS antenna with respect to the mounting point of the ZED camera. Format: [x,y,z]'),
-            DeclareLaunchArgument(
-                'use_sim_time',
-                default_value='false',
-                description='If set to `true` the node will wait for messages on the `/clock` topic to start and will use this information as the timestamp reference',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'sim_mode',
-                default_value='false',
-                description='Enable simulation mode. Set `sim_address` and `sim_port` to configure the simulator input.',
-                choices=['true', 'false']),
-            DeclareLaunchArgument(
-                'sim_address',
-                default_value='127.0.0.1',
-                description='The connection address of the simulation server. See the documentation of the supported simulation plugins for more information.'),
-            DeclareLaunchArgument(
-                'sim_port',
-                default_value='30000',
-                description='The connection port of the simulation server. See the documentation of the supported simulation plugins for more information.'),
-            DeclareLaunchArgument(
-                'stream_address',
-                default_value='',
-                description='The connection address of the input streaming server.'),
-            DeclareLaunchArgument(
-                'stream_port',
-                default_value='30000',
-                description='The connection port of the input streaming server.'),
-            DeclareLaunchArgument(
-                'custom_baseline',
-                default_value='0.0',
-                description='Distance between the center of ZED X One cameras in a custom stereo rig.'),
+    ld = LaunchDescription([
+        SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
+        DeclareLaunchArgument(
+            'camera_name',
+            default_value=TextSubstitution(text='zed'),
+            description='The name of the camera. It can be different from the camera model and it will be used as node `namespace`.'),
+        DeclareLaunchArgument(
+            'camera_model',
+            description='[REQUIRED] The model of the camera. Using a wrong camera model can disable camera features.',
+            choices=['zed', 'zedm', 'zed2', 'zed2i', 'zedx', 'zedxm', 'virtual']),
+        # DeclareLaunchArgument(
+        #     'node_name',
+        #     default_value='zed_node',
+        #     description='The name of the zed_wrapper node. All the topic will have the same prefix: `/<camera_name>/<node_name>/`'),
+        DeclareLaunchArgument(
+            'config_path',
+            default_value=TextSubstitution(text=default_config_common),
+            description='Path to the YAML configuration file for the camera.'),
+        DeclareLaunchArgument(
+            'ffmpeg_config_path',
+            default_value=TextSubstitution(text=default_config_ffmpeg),
+            description='Path to the YAML configuration file for the FFMPEG parameters when using FFMPEG image transport plugin.'),                
+        DeclareLaunchArgument(
+            'serial_number',
+            default_value='0',
+            description='The serial number of the camera to be opened. It is mandatory to use this parameter in multi-camera rigs to distinguish between different cameras.'),
+        DeclareLaunchArgument(
+            'publish_urdf',
+            default_value='true',
+            description='Enable URDF processing and starts Robot State Published to propagate static TF.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'publish_tf',
+            default_value='true',
+            description='Enable publication of the `odom -> camera_link` TF.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'publish_map_tf',
+            default_value='true',
+            description='Enable publication of the `map -> odom` TF. Note: Ignored if `publish_tf` is False.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'publish_imu_tf',
+            default_value='true',
+            description='Enable publication of the IMU TF. Note: Ignored if `publish_tf` is False.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'xacro_path',
+            default_value=TextSubstitution(text=default_xacro_path),
+            description='Path to the camera URDF file as a xacro file.'),
+        DeclareLaunchArgument(
+            'ros_params_override_path',
+            default_value='',
+            description='The path to an additional parameters file to override the defaults'),
+        DeclareLaunchArgument(
+            'svo_path',
+            default_value=TextSubstitution(text='live'),
+            description='Path to an input SVO file.'),
+        DeclareLaunchArgument(
+            'enable_gnss',
+            default_value='false',
+            description='Enable GNSS fusion to fix positional tracking pose with GNSS data from messages of type `sensor_msgs::msg::NavSatFix`. The fix topic can be customized in `common.yaml`.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'gnss_antenna_offset',
+            default_value='[]',
+            description='Position of the GNSS antenna with respect to the mounting point of the ZED camera. Format: [x,y,z]'),
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='false',
+            description='If set to `true` the node will wait for messages on the `/clock` topic to start and will use this information as the timestamp reference',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'sim_mode',
+            default_value='false',
+            description='Enable simulation mode. Set `sim_address` and `sim_port` to configure the simulator input.',
+            choices=['true', 'false']),
+        DeclareLaunchArgument(
+            'sim_address',
+            default_value='127.0.0.1',
+            description='The connection address of the simulation server. See the documentation of the supported simulation plugins for more information.'),
+        DeclareLaunchArgument(
+            'sim_port',
+            default_value='30000',
+            description='The connection port of the simulation server. See the documentation of the supported simulation plugins for more information.'),
+        DeclareLaunchArgument(
+            'stream_address',
+            default_value='',
+            description='The connection address of the input streaming server.'),
+        DeclareLaunchArgument(
+            'stream_port',
+            default_value='30000',
+            description='The connection port of the input streaming server.'),
+        DeclareLaunchArgument(
+            'custom_baseline',
+            default_value='0.0',
+            description='Distance between the center of ZED X One cameras in a custom stereo rig.')
+    ])
 
-            OpaqueFunction(function=launch_setup)
-        ]
-    )
+    ld.add_action(OpaqueFunction(function=launch_setup))
+    return ld
+

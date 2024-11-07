@@ -7,7 +7,6 @@ launch:
 
 launch_params: # Override common.yaml parameters here
     camera_model: "zed2i"
-    camera_name: "zed_0"
 
 network:
     interface: "enp2s0"
