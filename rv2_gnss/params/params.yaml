@@ -8,7 +8,7 @@
 
         devManageService: "devmanage_0" # Service name
         devInterface: "eno1"            # rv2_sensors only
-        procStatusRegPeriod_ms: 500.0   # Procedure status registration period
+        procStatusRegPeriod_ms: 200.0   # Procedure status registration period
 
         qosService: "qos_0"             # Service name
         qosDirPath: "qos"               # rv2_sensors only

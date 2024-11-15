@@ -12,7 +12,7 @@
 
         devManageService: "devmanage_0" # Service name
         devInterface: "enp2s0"          # rv2_sensors only
-        procStatusRegPeriod_ms: 500.0   # Procedure status registration period
+        procStatusRegPeriod_ms: 200.0   # Procedure status registration period
 
         qosService: "qos_0"             # Service name
         qosDirPath: "qos"               # rv2_sensors only
@@ -84,7 +84,7 @@
 
         pos_tracking:
             pos_tracking_enabled: true # True to enable positional tracking from start
-            pos_tracking_mode: "GEN_2" # Matches the ZED SDK setting: 'GEN_1', 'GEN_2'
+            pos_tracking_mode: "GEN_1" # Matches the ZED SDK setting: 'GEN_1', 'GEN_2'
             imu_fusion: true # enable/disable IMU fusion. When set to false, only the optical odometry will be used.
             publish_tf: true # [usually overwritten by launch file] publish `odom -> camera_link` TF
             publish_map_tf: true # [usually overwritten by launch file] publish `map -> odom` TF
@@ -200,3 +200,10 @@
             debug_roi: false
             debug_streaming: false
             debug_advanced: false
+
+
+# Bug report:
+# Wrapper memory usage increasing over time #268 (https://github.com/stereolabs/zed-ros2-wrapper/issues/268)
+# ZED SDK version: 4.2.1
+# ZED ROS2 Wrapper version: Humble-v4.1.4
+# Temporary solution: Change `pos_tracking`->`pos_tracking_mode` to `GEN_1` from `GEN_2`.
